@@ -1,3 +1,5 @@
+import collections
+
 from advent.utils import read_data
 
 
@@ -24,61 +26,28 @@ After 18 days: 6,0,6,4,5,6,0,1,1,2,6,0,1,1,1,2,2,3,3,4,6,7,8,8,8,8
 """
 
 TEST_DATA = ["3,4,3,1,2"]
+NEW_FISH = 6
+BIRTH_FISH = 8
 
 
-class Lanternfish:
-    def __init__(self, timer):
-        self.timer = timer
-
-    def advance(self):
-        if self.timer == 0:
-            self.timer = 6
-        else:
-            self.timer -= 1
-
-    def to_string(self) -> str:
-        return f"<Lanternfish({self.timer})>"
-
-    __str__ = to_string
-    __repr__ = to_string
-
-
-class Population:
-    def __init__(self, fishies):
-        self.fishies = fishies
-
-    def to_string(self):
-        timers = [str(fish.timer) for fish in self.fishies]
-        return ",".join(timers)
-
-    __str__ = to_string
-    __repr__ = to_string
-
-    @property
-    def total_fish(self):
-        return len(self.fishies)
-
-
-def pass_day(pop):
-    new_fish = []
-    for fish in pop.fishies:
-        if fish.timer == 0:
-            new_fish.append(Lanternfish(8))
-        fish.advance()
-    pop.fishies.extend(new_fish)
+def evolve_fish(fishes):
+    fishes = {k - 1: v for k, v in fishes.items()}
+    new_fishies = fishes.pop(-1, 0)
+    fishes[BIRTH_FISH] = fishes.get(BIRTH_FISH, 0) + new_fishies
+    fishes[NEW_FISH] = fishes.get(NEW_FISH, 0) + new_fishies
+    return fishes
 
 
 def run():
-    # data = TEST_DATA
+    #data = TEST_DATA
     data = read_data(6)
-    fishies = [Lanternfish(i) for i in map(int, data[0].split(","))]
-    population = Population(fishies)
+    fishies = collections.Counter(map(int, data[0].split(",")))
 
     days = 256
 
     # print(f"Initial state: {population}")
     for i in range(1, days + 1):
-        fishies = pass_day(population)
+        fishies = evolve_fish(fishies)
         # print(f"After {i} days: {population}")
 
-    print(f"Total fish: {population.total_fish}")
+    print(f"Total fish: {sum(fishies.values())}")
